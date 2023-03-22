@@ -8,11 +8,11 @@
 
 ## 代码文件
 
--poisson/* is the Poisson's equation discussed in Section 4.1.
--piv/* is the unsteady N-S equation discussed in Section 4.2.
--wave/* is the wave equation in Section 4.3.
--ns/* is the steady N-S equation in Section 4.4.
+- poisson/* 论文Section 4.1. 泊松方程
+- piv/* 论文Section 4.2. 稳态二维圆柱绕流（层流）
+- wave/* 论文Section 4.3. 一维波浪方程
+- ns/* 论文Section 4.4. 非稳态二维圆柱绕流
 
 ## 数据库
-- [steady NS]()
-- [unsteady NS]()
+- [steady NS](https://github.com/dsqzhou/paddle-pinn/blob/main/piv/FluentSol.mat)
+- [unsteady NS](https://github.com/dsqzhou/paddle-pinn/blob/main/ns/cylinder_nektar_wake.mat)
