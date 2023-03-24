@@ -50,21 +50,6 @@ class PINN_NS_unsteady(DeepModelSingle):
         psi = out_var[..., 0:1]
         p = out_var[..., 1:2]
 
-        # u = self.gradients(psi, inn_var)[..., 1:2]
-        # v = -self.gradients(psi, inn_var)[..., 0:1]
-        #
-        # duda = self.gradients(u, inn_var)
-        # dvda = self.gradients(v, inn_var)
-        # dpda = self.gradients(p, inn_var)
-        #
-        # dudx, dudy, dudt = duda[..., 0:1], duda[..., 1:2], duda[..., 2:3]
-        # dvdx, dvdy, dvdt = dvda[..., 0:1], dvda[..., 1:2], dvda[..., 2:3]
-        # dpdx, dpdy, dpdt = dpda[..., 0:1], dpda[..., 1:2], dpda[..., 2:3]
-        #
-        # d2udx2 = self.gradients(dudx, inn_var)[..., 0:1]
-        # d2udy2 = self.gradients(dudy, inn_var)[..., 1:2]
-        # d2vdx2 = self.gradients(dvdx, inn_var)[..., 0:1]
-        # d2vdy2 = self.gradients(dvdy, inn_var)[..., 1:2]
         dpsida = paddle.incubate.autograd.grad(psi, inn_var)
         u, v = dpsida[:, 1:2], -dpsida[:, 0:1]
 
@@ -86,24 +71,6 @@ class PINN_NS_unsteady(DeepModelSingle):
 
         return paddle.concat((res_u, res_v), axis=-1), \
                paddle.concat((p, u, v), axis=-1)  # cat给定维度
-
-    def train(self, DATA, Loss_data, Loss_PDE, weight, Optimizer, log_loss):
-
-        model = self
-        inn_data = DATA[:, 0:3]
-        out_data = DATA[:, 3:5]
-        Optimizer.clear_grad()
-        res_i, field_data_pred = self.equation(inn_data)
-        uv_data_pre = field_data_pred[..., 1:3]
-        data_loss = Loss_data(out_data, uv_data_pre)
-        eqs_loss = Loss_PDE(res_i, paddle.zeros_like(res_i))
-
-        loss_batch = data_loss + weight * eqs_loss
-        loss_batch.backward()
-
-        log_loss.append([data_loss.item(), eqs_loss.item()])
-
-        Optimizer.step()
 
     def predict_error(self, Val_pred):
         x, y, t, u, v, p = get_truth()
@@ -174,6 +141,7 @@ def build(model, N_train, N_valid, Loss_data, weight, Optimizer):
     Tra_inn = paddle.static.data('Tra_inn', shape=[N_train, 3], dtype='float32')
     Tra_inn.stop_gradient = False
     Tra_out = paddle.static.data('Tra_out', shape=[N_train, 2], dtype='float32')
+    Tra_out.stop_gradient = False
 
     Val_inn = paddle.static.data('Val_inn', shape=[N_valid, 3], dtype='float32')
 
