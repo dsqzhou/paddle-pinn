@@ -14,7 +14,6 @@ from basic_model import DeepModelSingle, DeepModelMulti
 from parser_pinn import get_parser
 from gen_ns_data import get_noise_data, get_truth
 
-
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # CPU:-1; GPU0: 1; GPU1: 0;
 
 parser_PINN = get_parser()
@@ -44,9 +43,15 @@ class PINN_NS_unsteady(DeepModelSingle):
         return paddle.grad(y, x, grad_outputs=paddle.ones_like(y),
                            create_graph=True, retain_graph=True, only_inputs=True)[0]
 
+    def get_lambda_1(self):
+        return paddle.to_tensor(self.lambda_1)
+
+    def get_lambda_2(self):
+        return paddle.to_tensor(self.lambda_2)
+
     def equation(self, inn_var):
         model = self
-        out_var = model(inn_var)
+        out_var = self.forward(inn_var)
         psi = out_var[..., 0:1]
         p = out_var[..., 1:2]
 
@@ -66,18 +71,18 @@ class PINN_NS_unsteady(DeepModelSingle):
         d2vdx2 = paddle.incubate.autograd.grad(dvdx, inn_var)[..., 0:1]
         d2vdy2 = paddle.incubate.autograd.grad(dvdy, inn_var)[..., 1:2]
 
-        res_u = dudt + self.lambda_1 * (u * dudx + v * dudy) + dpdx - self.lambda_2 * (d2udx2 + d2udy2)
-        res_v = dvdt + self.lambda_1 * (u * dvdx + v * dvdy) + dpdy - self.lambda_2 * (d2vdx2 + d2vdy2)
+        res_u = dudt + (u * dudx + v * dudy) * self.get_lambda_1() + dpdx - (d2udx2 + d2udy2) * self.get_lambda_2()
+        res_v = dvdt + (u * dvdx + v * dvdy) * self.get_lambda_1() + dpdy - (d2vdx2 + d2vdy2) * self.get_lambda_2()
 
-        return paddle.concat((res_u, res_v), axis=-1), \
-               paddle.concat((p, u, v), axis=-1)  # cat给定维度
+        return res_u, res_v, p, u, v  # cat给定维度
 
     def predict_error(self, Val_pred):
         x, y, t, u, v, p = get_truth()
         out_pred = Val_pred.numpy()
         error_u = np.linalg.norm(out_pred[:, (1,)] - u, 2) / np.linalg.norm(u, 2)
         error_v = np.linalg.norm(out_pred[:, (2,)] - v, 2) / np.linalg.norm(v, 2)
-        error_vel = np.sqrt(np.sum((out_pred[:, (1,)] - u) ** 2 + (out_pred[:, (2,)] - v) ** 2)) / np.sqrt(np.sum(u ** 2 + v ** 2))
+        error_vel = np.sqrt(np.sum((out_pred[:, (1,)] - u) ** 2 + (out_pred[:, (2,)] - v) ** 2)) / np.sqrt(
+            np.sum(u ** 2 + v ** 2))
         error_max = np.max(np.sqrt((out_pred[:, (1,)] - u) ** 2 + (out_pred[:, (2,)] - v) ** 2))
         error_p = np.linalg.norm(out_pred[:, (0,)] - p, 2) / np.linalg.norm(p, 2)
         lambda_1 = self.lambda_1.numpy()
@@ -102,7 +107,8 @@ class PINN_NS_unsteady(DeepModelSingle):
         plt.clf()
         fig, ax = plt.subplots(6, 1, figsize=(10, 20), dpi=200)
         fig.set_tight_layout(True)
-        im = ax[0].pcolormesh(x.ravel().reshape(*_shape), y.ravel().reshape(*_shape), out_pred[:, (1,)].ravel().reshape(*_shape), )
+        im = ax[0].pcolormesh(x.ravel().reshape(*_shape), y.ravel().reshape(*_shape),
+                              out_pred[:, (1,)].ravel().reshape(*_shape), )
         divider = make_axes_locatable(ax[0])
         cax = divider.append_axes("right", size="5%", pad=0.05)
         plt.colorbar(im, cax=cax)
@@ -118,7 +124,8 @@ class PINN_NS_unsteady(DeepModelSingle):
         cax = divider.append_axes("right", size="5%", pad=0.05)
         plt.colorbar(im, cax=cax)
 
-        im = ax[3].pcolormesh(x.ravel().reshape(*_shape), y.ravel().reshape(*_shape), out_pred[:, (0,)].ravel().reshape(*_shape), )
+        im = ax[3].pcolormesh(x.ravel().reshape(*_shape), y.ravel().reshape(*_shape),
+                              out_pred[:, (0,)].ravel().reshape(*_shape), )
         divider = make_axes_locatable(ax[3])
         cax = divider.append_axes("right", size="5%", pad=0.05)
         plt.colorbar(im, cax=cax)
@@ -136,28 +143,8 @@ class PINN_NS_unsteady(DeepModelSingle):
         plt.colorbar(im, cax=cax)
         plt.savefig(filename)
 
-def build(model, N_train, N_valid, Loss_data, weight, Optimizer):
-
-    Tra_inn = paddle.static.data('Tra_inn', shape=[N_train, 3], dtype='float32')
-    Tra_inn.stop_gradient = False
-    Tra_out = paddle.static.data('Tra_out', shape=[N_train, 2], dtype='float32')
-    Tra_out.stop_gradient = False
-
-    Val_inn = paddle.static.data('Val_inn', shape=[N_valid, 3], dtype='float32')
-
-    res_i, field_data_pred = model.equation(Tra_inn)
-    uv_data_pre = field_data_pred[..., 1:3]
-    data_loss = Loss_data(Tra_out, uv_data_pre)
-    eqs_loss = nn.MSELoss(res_i, paddle.zeros_like(res_i))
-
-    loss_batch = data_loss + weight * eqs_loss
-    Optimizer.minimize(loss_batch)
-
-    _, Val_pred = model.equation(Val_inn)
-    return Val_pred, [data_loss, eqs_loss, loss_batch]
 
 def run_experiment(epoch_num, noise_type, noise, loss_type, weight, N=5000, _data=[], l_size=-1, abnormal_size=0):
-
     try:
         import paddle.fluid as fluid
         place = fluid.CUDAPlace(0) if paddle.is_compiled_with_cuda() else fluid.CPUPlace()
@@ -172,15 +159,12 @@ def run_experiment(epoch_num, noise_type, noise, loss_type, weight, N=5000, _dat
     lb = np.array([1, -2, 0])
     ub = np.array([8, 2, 20])
 
-    # Network configuration
-    uv_layers = [3] + 8 * [40] + [2]
-
     if len(_data) == 0:
         x_train, y_train, t_train, u_train, v_train, p_train = get_noise_data(N=N, noise_type=noise_type, sigma=noise,
                                                                               size=abnormal_size)
         _data.append((x_train, y_train, t_train, u_train, v_train))
     x_train, y_train, t_train, u_train, v_train = _data[0]
-    Tra_DATA = np.concatenate(_data[0], axis=1)
+    Tra_DATA = np.concatenate(_data[0], axis=1).astype('float32')
 
     # Visualize the collocation points
     fig, ax = plt.subplots()
@@ -189,7 +173,7 @@ def run_experiment(epoch_num, noise_type, noise, loss_type, weight, N=5000, _dat
     plt.savefig('collocation.png')
 
     x, y, t, u, v, p = get_truth()
-    Val_DATA = np.concatenate((x, y, t, u, v, p), axis=1)
+    Val_DATA = np.concatenate((x, y, t, u, v, p), axis=1).astype('float32')
     N_truth = Val_DATA.shape[0]
 
     ## 模型设置
@@ -197,15 +181,40 @@ def run_experiment(epoch_num, noise_type, noise, loss_type, weight, N=5000, _dat
     # Model
     Net_model = PINN_NS_unsteady(planes=planes)
     # Loss
+    # if loss_type == "square":
+    #     Loss_data = nn.MSELoss()
+    # elif loss_type == "l1":
+    #     Loss_data = nn.L1Loss()
+    # else:
+    #     raise NotImplementedError(f'Loss type {loss_type} not implemented.')
+    scheduler = paddle.optimizer.lr.MultiStepDecay(0.001, [adam_iter * 0.6, adam_iter * 0.8], gamma=0.1)
+    Optimizer = paddle.optimizer.Adam(scheduler)
+
+    Tra_inn = paddle.static.data('Tra_inn', shape=[x_train.shape[0], 3], dtype='float32')
+    Tra_inn.stop_gradient = False
+    Tra_out = paddle.static.data('Tra_out', shape=[u_train.shape[0], 2], dtype='float32')
+    Tra_out.stop_gradient = False
+
+    Val_inn = paddle.static.data('Val_inn', shape=[N_truth, 3], dtype='float32')
+    res_u, res_v, p, u, v = Net_model.equation(Tra_inn)
     if loss_type == "square":
-        Loss_data = nn.MSELoss()
+        u_loss = paddle.norm(u - Tra_out[:, 0], p=2) ** 2 / u.shape[0]
+        v_loss = paddle.norm(v - Tra_out[:, 1], p=2) ** 2 / v.shape[0]
     elif loss_type == "l1":
-        Loss_data = nn.L1Loss()
+        u_loss = paddle.norm(u - Tra_out[:, 0], p=1) / u.shape[0]
+        v_loss = paddle.norm(v - Tra_out[:, 1], p=1) / v.shape[0]
     else:
         raise NotImplementedError(f'Loss type {loss_type} not implemented.')
-    Optimizer = paddle.optimizer.Adam(learning_rate=1e-3, parameters=Net_model.parameters())
-    Val_pred, Loss = build(Net_model, N, N_truth, Loss_data, weight, Optimizer)
+    eqsU_loss = paddle.norm(res_u, p=2) ** 2 / res_u.shape[0]
+    eqsV_loss = paddle.norm(res_v, p=2) ** 2 / res_v.shape[0]
+    data_loss = u_loss + v_loss
+    eqs_loss = eqsU_loss + eqsV_loss
 
+    loss_batch = data_loss + weight * eqs_loss
+    Optimizer.minimize(loss_batch)
+
+    _, _, p_pre, u_pre, v_pre = Net_model.equation(Val_inn)
+    Loss = [data_loss, eqs_loss, loss_batch]
 
     ## 执行训练过程
     log_loss = []
@@ -224,13 +233,17 @@ def run_experiment(epoch_num, noise_type, noise, loss_type, weight, N=5000, _dat
                 fetch_list=[Loss[-1]])
 
         if epoch > 0 and epoch % print_freq == 0:
-            all_items = exe.run(prog, feed={'Tra_inn': Tra_DATA[:, :3], 'Tra_out': Tra_DATA[:, 3:5], 'Val_inn': Val_DATA[:, :3]},
-                fetch_list=[Val_pred, Loss])
-            Val_pred = all_items[0]
-            loss = all_items[1:]
+            all_items = exe.run(prog, feed={'Tra_inn': Tra_DATA[:, :3], 'Tra_out': Tra_DATA[:, 3:5],
+                                            'Val_inn': Val_DATA[:, :3]},
+                                fetch_list=[[p_pre, u_pre, v_pre] + Loss])
+            p_pre = all_items[0]
+            u_pre = all_items[1]
+            v_pre = all_items[2]
+            loss = all_items[3:]
             log_loss.append(np.array(loss).squeeze())
             print('epoch: {:6d}, lr: {:.3e}, data_loss: {:.3e}, pde_loss: {:.3e}, total_loss: {:.3e}, cost: {:.2f}'.
-              format(epoch, learning_rate, log_loss[-1][0], log_loss[-1][1], log_loss[-1][2], time.time() - sta_time))
+                  format(epoch, learning_rate, log_loss[-1][0], log_loss[-1][1], log_loss[-1][2],
+                         time.time() - sta_time))
             paddle.save({'epoch': adam_iter, 'log_loss': log_loss,
                          'model': Net_model.state_dict(), "optimizer": Optimizer.state_dict()},
                         os.path.join(path,
@@ -238,14 +251,19 @@ def run_experiment(epoch_num, noise_type, noise, loss_type, weight, N=5000, _dat
 
     paddle.save({'epoch': adam_iter, 'log_loss': log_loss,
                  'model': Net_model.state_dict(), "optimizer": Optimizer.state_dict()},
-        os.path.join(path, f'{epoch_num}_{loss_type}_{N}_{noise_type}_{noise}_{abnormal_size}_{weight}.pdparams'))
-    error_u, error_v, error_vel, error_max, error_p, lambda_1_error, lambda_2_error = Net_model.predict_error(Val_pred)
-    Net_model.plot_result(Val_pred, path.joinpath(f'{epoch_num}_{loss_type}_{N}_{noise_type}_{noise}_{abnormal_size}_{weight}.png'))
+                os.path.join(path,
+                             f'{epoch_num}_{loss_type}_{N}_{noise_type}_{noise}_{abnormal_size}_{weight}.pdparams'))
+    error_u, error_v, error_vel, error_max, error_p, lambda_1_error, lambda_2_error = Net_model.predict_error(p_pre,
+                                                                                                              u_pre,
+                                                                                                              v_pre)
+    Net_model.plot_result(p_pre, u_pre, v_pre, path.joinpath(
+        f'{epoch_num}_{loss_type}_{N}_{noise_type}_{noise}_{abnormal_size}_{weight}.png'))
     with open(path.joinpath('result.csv'), 'a+') as f:
         f.write(
             f"{epoch_num},{loss_type},{N},{noise_type},{noise},{abnormal_size},{weight},{error_u},{error_v},{error_vel},{error_p},{lambda_1_error}, {lambda_2_error}\n")
 
     print("--- %s seconds ---" % (time.time() - sta_time))
+
 
 def get_last_idx(filename):
     if not os.path.exists(filename):
