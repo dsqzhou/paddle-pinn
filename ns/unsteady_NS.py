@@ -42,19 +42,20 @@ class PINN_NS_unsteady(DeepModelSingle):
     def gradients(self, y, x):
         return paddle.grad(y, x, grad_outputs=paddle.ones_like(y),
                            create_graph=True, retain_graph=True, only_inputs=True)[0]
-
+    @property
     def get_lambda_1(self):
         return paddle.to_tensor(self.lambda_1)
 
+    @property
     def get_lambda_2(self):
         return paddle.to_tensor(self.lambda_2)
 
     def equation(self, inn_var):
-        model = self
+
         out_var = self.forward(inn_var)
         psi = out_var[..., 0:1]
         p = out_var[..., 1:2]
-
+        #
         dpsida = paddle.incubate.autograd.grad(psi, inn_var)
         u, v = dpsida[:, 1:2], -dpsida[:, 0:1]
 
@@ -71,8 +72,10 @@ class PINN_NS_unsteady(DeepModelSingle):
         d2vdx2 = paddle.incubate.autograd.grad(dvdx, inn_var)[..., 0:1]
         d2vdy2 = paddle.incubate.autograd.grad(dvdy, inn_var)[..., 1:2]
 
-        res_u = dudt + (u * dudx + v * dudy) * self.get_lambda_1() + dpdx - (d2udx2 + d2udy2) * self.get_lambda_2()
-        res_v = dvdt + (u * dvdx + v * dvdy) * self.get_lambda_1() + dpdy - (d2vdx2 + d2vdy2) * self.get_lambda_2()
+        res_u = dudt + (u * dudx + v * dudy) * self.get_lambda_1 + dpdx - (d2udx2 + d2udy2) * self.get_lambda_2
+        res_v = dvdt + (u * dvdx + v * dvdy) * self.get_lambda_1 + dpdy - (d2vdx2 + d2vdy2) * self.get_lambda_2
+        # res_u = u
+        # res_v = v
 
         return res_u, res_v, p, u, v  # cat给定维度
 
@@ -193,16 +196,16 @@ def run_experiment(epoch_num, noise_type, noise, loss_type, weight, N=5000, _dat
     Tra_inn = paddle.static.data('Tra_inn', shape=[x_train.shape[0], 3], dtype='float32')
     Tra_inn.stop_gradient = False
     Tra_out = paddle.static.data('Tra_out', shape=[u_train.shape[0], 2], dtype='float32')
-    Tra_out.stop_gradient = False
+    # Tra_out.stop_gradient = False
 
     Val_inn = paddle.static.data('Val_inn', shape=[N_truth, 3], dtype='float32')
     res_u, res_v, p, u, v = Net_model.equation(Tra_inn)
     if loss_type == "square":
-        u_loss = paddle.norm(u - Tra_out[:, 0], p=2) ** 2 / u.shape[0]
-        v_loss = paddle.norm(v - Tra_out[:, 1], p=2) ** 2 / v.shape[0]
+        u_loss = paddle.norm(u - Tra_out[:, 0:1], p=2) ** 2 / u.shape[0]
+        v_loss = paddle.norm(v - Tra_out[:, 1:2], p=2) ** 2 / v.shape[0]
     elif loss_type == "l1":
-        u_loss = paddle.norm(u - Tra_out[:, 0], p=1) / u.shape[0]
-        v_loss = paddle.norm(v - Tra_out[:, 1], p=1) / v.shape[0]
+        u_loss = paddle.norm(u - Tra_out[:, 0:1], p=1) / u.shape[0]
+        v_loss = paddle.norm(v - Tra_out[:, 1:2], p=1) / v.shape[0]
     else:
         raise NotImplementedError(f'Loss type {loss_type} not implemented.')
     eqsU_loss = paddle.norm(res_u, p=2) ** 2 / res_u.shape[0]
@@ -249,10 +252,11 @@ def run_experiment(epoch_num, noise_type, noise, loss_type, weight, N=5000, _dat
                         os.path.join(path,
                                      f'{epoch_num}_{loss_type}_{N}_{noise_type}_{noise}_{abnormal_size}_{weight}.pdparams'))
 
-    paddle.save({'epoch': adam_iter, 'log_loss': log_loss,
-                 'model': Net_model.state_dict(), "optimizer": Optimizer.state_dict()},
+    paddle.save({'epoch': adam_iter, 'log_loss': log_loss, 'model': prog.state_dict()},
                 os.path.join(path,
                              f'{epoch_num}_{loss_type}_{N}_{noise_type}_{noise}_{abnormal_size}_{weight}.pdparams'))
+
+    # paddle.save(prog.state_dict(), os.path.join(path, 'latest_model.pdparams'), )
     error_u, error_v, error_vel, error_max, error_p, lambda_1_error, lambda_2_error = Net_model.predict_error(p_pre,
                                                                                                               u_pre,
                                                                                                               v_pre)
@@ -271,3 +275,15 @@ def get_last_idx(filename):
     with open(filename, "r") as f1:
         last_idx = int(f1.readlines()[-1].strip().split(',')[0])
         return last_idx
+
+
+if __name__ == "__main__":
+    N = 5000
+    noise = 0.01
+    abnormal_ratio = 0.01
+    abnormal_size = int(N * abnormal_ratio)
+    noise_type = 'outlinear'
+    _data = []
+    weight = 1.0
+    run_experiment(0, N=N, noise=noise, noise_type=noise_type, weight=weight,
+                   loss_type='l1', _data=_data, abnormal_size=abnormal_size)
