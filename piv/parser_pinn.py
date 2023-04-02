@@ -8,7 +8,7 @@ def get_parser():
         '--adam_iter', default=10000, type=int
     )
     parser.add_argument(
-        '--bfgs_iter', default=100000, type=int
+        '--bfgs_iter', default=2000, type=int
     )
     parser.add_argument(
         '--Nf', default=8000, type=int

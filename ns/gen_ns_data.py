@@ -79,11 +79,10 @@ def get_noise_data(N, noise_type="none", sigma=0.5, size=-1, seed=0):
     else:
         raise NotImplementedError(f'noise type {noise_type} not implemented.')
 
-
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
-    for ti in [20, 25, 30, 35, 40]:
+    for ti in [50, 100, 150]:
         x, y, t, u, v, p = get_truth()
         print(f"x_min: {x.min()}, y_min: {y.min()}, t_min: {t.min()}")
         print(f"x_max: {x.max()}, y_max: {y.max()}, t_max: {t.max()}")
@@ -95,10 +94,19 @@ if __name__ == '__main__':
         fig, ax = plt.subplots(3, 1, figsize=(10, 10), dpi=200)
         fig.set_tight_layout(True)
         print(u.min(), u.max())
-        ax[0].pcolormesh(x, y, u, vmin=-0.3, vmax=1.4)
+        ax[0].pcolormesh(x, y, u, vmin=-0.3, vmax=1.4, shading='gouraud')
+        ax[0].set_title('u')
+        ax[0].set_xlabel('x')
+        ax[0].set_ylabel('y')
         print(v.min(), v.max())
-        ax[1].pcolormesh(x, y, v, vmin=-0.7, vmax=0.7)
-        ax[2].pcolormesh(x, y, p, vmin=-0.6, vmax=0.1)
+        ax[1].pcolormesh(x, y, v, vmin=-0.7, vmax=0.7, shading='gouraud')
+        ax[1].set_title('v')
+        ax[1].set_xlabel('x')
+        ax[1].set_ylabel('y')
+        ax[2].pcolormesh(x, y, p, vmin=-0.6, vmax=0.1, shading='gouraud')
+        ax[2].set_title('p')
+        ax[2].set_xlabel('x')
+        ax[2].set_ylabel('y')
         print(p.min(), p.max())
-        plt.savefig(f'noise_data_{ti}.png')
+        plt.savefig(f'noise_data_{ti/10}s.png')
         plt.show()

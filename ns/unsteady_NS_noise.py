@@ -7,7 +7,6 @@ from unsteady_NS import *
 if __name__ == "__main__":
     idx = 0
     last_idx = get_last_idx(path.joinpath('result.csv'))
-    idx = last_idx + 1
     executed_flag = False
     if executed_flag:
         sys.exit()
@@ -25,6 +24,11 @@ if __name__ == "__main__":
                                            loss_type='l1', _data=_data, abnormal_size=abnormal_size)
                             # executed_flag = True
                         idx += 1
+                        if idx > last_idx:
+                            run_experiment(idx, N=N, noise=noise, noise_type=noise_type, weight=weight,
+                                            loss_type='square', _data=_data, abnormal_size=abnormal_size)
+                            # executed_flag = True
+                        idx += 1
     if executed_flag:
         sys.exit()
     for r in range(repeat):
@@ -39,8 +43,12 @@ if __name__ == "__main__":
                         for weight in [1E-0]:
                             if idx > last_idx:
                                 run_experiment(idx, N=N, noise=noise, noise_type=noise_type, weight=weight,
-                                               loss_type='l1', _data=_data, abnormal_size=abnormal_size)
+                                                loss_type='l1', _data=_data, abnormal_size=abnormal_size)
                                 # executed_flag = True
+                            idx += 1
+                            if idx > last_idx:
+                                run_experiment(idx, N=N, noise=noise, noise_type=noise_type, weight=weight,
+                                            loss_type='square', _data=_data, abnormal_size=abnormal_size)
                             idx += 1
 
     if executed_flag:
@@ -60,6 +68,11 @@ if __name__ == "__main__":
                                                loss_type='l1', _data=_data, abnormal_size=abnormal_size)
                                 # executed_flag = True
                             idx += 1
+                            if idx > last_idx:
+                                run_experiment(idx, N=N, noise=noise, noise_type=noise_type, weight=weight,
+                                               loss_type='square', _data=_data, abnormal_size=abnormal_size)
+                                # executed_flag = True
+                            idx += 1
 
     if executed_flag:
         sys.exit()
@@ -77,6 +90,11 @@ if __name__ == "__main__":
                             if idx > last_idx:
                                 run_experiment(idx, N=N, noise=noise, noise_type=noise_type, weight=weight,
                                                loss_type='l1', _data=_data, abnormal_size=abnormal_size)
+                                # executed_flag = True
+                            idx += 1
+                            if idx > last_idx:
+                                run_experiment(idx, N=N, noise=noise, noise_type=noise_type, weight=weight,
+                                               loss_type='square', _data=_data, abnormal_size=abnormal_size)
                                 # executed_flag = True
                             idx += 1
 

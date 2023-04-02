@@ -1,11 +1,15 @@
 import os
 import sys
 import time
+import matplotlib
+
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import pathlib
 import paddle
 import paddle.nn as nn
+from paddle.incubate.optimizer import LBFGS
 from pyDOE import lhs
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from basic_model import DeepModelSingle
@@ -62,8 +66,8 @@ class PINN_laminar_flow(DeepModelSingle):
         ds12da = self.gradients(s12, inn_var)
 
         dpdx, dpdy = dpda[..., 0:1], dpda[..., 1:2]
-        dudx, dudy = duda[..., 0:1], duda[..., 1:2]
-        dvdx, dvdy = duda[..., 0:1], duda[..., 1:2]
+        dudx, dudy = dpda[..., 0:1], dpda[..., 1:2]
+        dvdx, dvdy = dpda[..., 0:1], dpda[..., 1:2]
         ds11dx, ds11dy = ds11da[..., 0:1], ds11da[..., 1:2]
         ds22dx, ds22dy = ds22da[..., 0:1], ds22da[..., 1:2]
         ds12dx, ds12dy = ds12da[..., 0:1], ds12da[..., 1:2]
@@ -86,7 +90,6 @@ class PINN_laminar_flow(DeepModelSingle):
         equation, field_pred = model.equation(inn_var, out_pred)
 
         return equation, field_pred
-
 
     def train(self, XY_c, OUTLET, WALL, DATA, Loss_PDE, weight, switch, Optimizer, log_loss):
 
@@ -112,6 +115,32 @@ class PINN_laminar_flow(DeepModelSingle):
         log_loss.append([data_loss.item(), eqs_loss.item(), wall_loss.item(), outlet_loss.item()])
 
         Optimizer.step()
+
+    def train_bfgs(self, XY_c, OUTLET, WALL, DATA, Loss_PDE, weight, switch, Optimizer, log_loss):
+        def closure():
+            model = self
+            Optimizer.clear_grad()
+            inn_data = DATA[:, 0:2]
+            out_data = DATA[:, 2:4]
+            _, field_data_pred = self.inference(inn_data)
+            res_i, field_c_pred = self.inference(XY_c)
+            _, field_outlet_pred = self.inference(OUTLET)
+            _, field_wall_pred = self.inference(WALL)
+            uv_data_pre = field_data_pred[..., 1:3]
+            p_outlet_pre = field_outlet_pred[..., 0:1]
+            uv_wall_pre = field_wall_pred[..., 1:3]
+            data_loss = (1 - switch) * nn.L1Loss()(out_data, uv_data_pre) + switch * nn.MSELoss()(out_data, uv_data_pre)
+            eqs_loss = Loss_PDE(res_i, paddle.zeros_like(res_i))
+            wall_loss = Loss_PDE(uv_wall_pre, paddle.zeros_like(uv_wall_pre))
+            outlet_loss = Loss_PDE(p_outlet_pre, paddle.zeros_like(p_outlet_pre))
+
+            loss_batch = data_loss + weight * eqs_loss + wall_loss + outlet_loss
+            loss_batch.backward()
+
+            log_loss.append([data_loss.item(), eqs_loss.item(), wall_loss.item(), outlet_loss.item()])
+            return loss_batch
+
+        Optimizer.step(closure)
 
     def sieve_obs(self, DATA, ratio):
         model = self
@@ -175,7 +204,8 @@ class PINN_laminar_flow(DeepModelSingle):
         out_pred = field_pred.numpy()
         error_u = np.linalg.norm(out_pred[:, (1,)] - u, 2) / np.linalg.norm(u, 2)
         error_v = np.linalg.norm(out_pred[:, (2,)] - v, 2) / np.linalg.norm(v, 2)
-        error_vel = np.sqrt(np.sum((out_pred[:, (1,)] - u) ** 2 + (out_pred[:, (2,)] - v) ** 2)) / np.sqrt(np.sum(u ** 2 + v ** 2))
+        error_vel = np.sqrt(np.sum((out_pred[:, (1,)] - u) ** 2 + (out_pred[:, (2,)] - v) ** 2)) / np.sqrt(
+            np.sum(u ** 2 + v ** 2))
         error_max = np.max(np.sqrt((out_pred[:, (1,)] - u) ** 2 + (out_pred[:, (2,)] - v) ** 2))
         error_p = np.linalg.norm(out_pred[:, (0,)] - p, 2) / np.linalg.norm(p, 2)
         return error_u, error_v, error_vel, error_max, error_p
@@ -199,7 +229,8 @@ class PINN_laminar_flow(DeepModelSingle):
         cax = divider.append_axes("right", size="5%", pad=0.05)
         plt.colorbar(im, cax=cax)
 
-        im = ax[2].scatter(x_train, y_train, c=np.hypot(u_train - out_pred[:, (1,)], v_train - out_pred[:, (2,)]), vmin=0.,
+        im = ax[2].scatter(x_train, y_train, c=np.hypot(u_train - out_pred[:, (1,)], v_train - out_pred[:, (2,)]),
+                           vmin=0.,
                            vmax=0.5)
         divider = make_axes_locatable(ax[2])
         cax = divider.append_axes("right", size="5%", pad=0.05)
@@ -226,6 +257,7 @@ class PINN_laminar_flow(DeepModelSingle):
 
         plt.savefig(filename)
 
+
 def run_experiment(epoch_num, noise_type, noise, loss_type, N, weight, _data=[], abnormal_size=0, sieve_sigma=0,
                    sieve_ratio=0):
     if paddle.is_compiled_with_cuda():
@@ -233,7 +265,7 @@ def run_experiment(epoch_num, noise_type, noise, loss_type, N, weight, _data=[],
     else:
         paddle.device.set_device('cpu')
 
-
+    print(f"运行算例：{loss_type}_{N}_{noise_type}_{noise}_{abnormal_size}_{weight}_{sieve_sigma}_{sieve_ratio}")
     ## 模型设置
     planes = [2] + [num_neurons] * num_layers + [5]
     # Model
@@ -245,7 +277,6 @@ def run_experiment(epoch_num, noise_type, noise, loss_type, N, weight, _data=[],
     # 优化算法
     # Optimizer = paddle.optimizer.Adam(learning_rate=Scheduler, parameters=Net_model.parameters(), beta1=0.8, beta2=0.9)
     Optimizer = paddle.optimizer.Adam(learning_rate=1e-3, parameters=Net_model.parameters())
-
 
     ## 数据生成
     # Domain bounds
@@ -291,7 +322,6 @@ def run_experiment(epoch_num, noise_type, noise, loss_type, N, weight, _data=[],
     plt.scatter(_data[0][0].flatten(), _data[0][1].flatten(), marker='o', alpha=0.2, color='blue')
     plt.savefig('collocation.png')
 
-
     ## 执行训练过程
     log_loss = []
     print_freq = 20
@@ -303,6 +333,7 @@ def run_experiment(epoch_num, noise_type, noise, loss_type, N, weight, _data=[],
             switch = 0
         else:
             switch = 1
+        # Adam初步优化
         for it in range(adam_iter):
             learning_rate = Optimizer.get_lr()
             Net_model.train(XY_c, OUTLET, WALL, DATA, Loss_PDE, weight, switch, Optimizer, log_loss)
@@ -314,15 +345,25 @@ def run_experiment(epoch_num, noise_type, noise, loss_type, N, weight, _data=[],
                              'model': Net_model.state_dict(), "optimizer": Optimizer.state_dict()},
                             os.path.join(path,
                                 f'{epoch_num}_{loss_type}_{N}_{noise_type}_{noise}_{abnormal_size}_{weight}.pdparams'))
-        # # 调用 bfgs 方法优化 loss，注意返回的第三个参数表示权重
-        # w_update = paddle.incubate.optimizer.functional.minimize_lbfgs(loss_batch, w, max_iters=bfgs_iter, maxfun=)[2]
-        # # 使用 paddle.assign，以 inplace 方式更新参数
-        # paddle.assign(w_update, w)
-        Optimizer._learning_rate = 1e-20
+        # LBFGS优化
+        Optimizer = LBFGS(parameters=Net_model.parameters())
+        for it in range(bfgs_iter):
+            Net_model.train_bfgs(XY_c, OUTLET, WALL, DATA, Loss_PDE, weight, switch, Optimizer, log_loss)
+            if (it + 1) % print_freq == 0:
+                print('epoch: {:6d}, data_loss: {:.3e}, pde_loss: {:.3e}, cost: {:.2f}'.
+                      format(it, log_loss[-1][0], log_loss[-1][-1], time.time() - sta_time))
+                error_u = Net_model.predict_error()
+                print(error_u)
+                paddle.save({'epoch': adam_iter, 'log_loss': log_loss,
+                             'model': Net_model.state_dict(), "optimizer": Optimizer.state_dict()},
+                            os.path.join(path,
+                                         f'{loss_type}_{N}_{noise_type}_{noise}_{abnormal_size}_{weight}_0_0.pdparams'))
+        # Adam终优化
+        Optimizer = paddle.optimizer.Adam(learning_rate=1e-20, parameters=Net_model.parameters())
         for it in range(100):
             Net_model.train(XY_c, OUTLET, WALL, DATA, Loss_PDE, weight, switch, Optimizer, log_loss)
     else:
-        Net_model.loadmodel(str(path) + '/' + f"*_l1_{N}_{noise_type}_{noise}_{abnormal_size}_*_0_0.pdparams")
+        Net_model.loadmodel(str(path) + '/' + f"l1_{N}_{noise_type}_{noise}_{abnormal_size}_1.0_0_0.pdparams")
         if sieve_sigma > 0 and sieve_ratio == 0:
             ind_valid = Net_model.sieve_obs_sigma(DATA, k=sieve_sigma)
             DATA = DATA.numpy()[ind_valid, :]
@@ -336,6 +377,7 @@ def run_experiment(epoch_num, noise_type, noise, loss_type, N, weight, _data=[],
             raise Exception('not good')
         assert loss_type == 'square'
         switch = 1
+        # Adam初步优化
         for it in range(1000):
             learning_rate = Optimizer.get_lr()
             Net_model.train(XY_c, OUTLET, WALL, DATA, Loss_PDE, weight, switch, Optimizer, log_loss)
@@ -347,26 +389,38 @@ def run_experiment(epoch_num, noise_type, noise, loss_type, N, weight, _data=[],
                              'model': Net_model.state_dict(), "optimizer": Optimizer.state_dict()},
                             os.path.join(path, f'{epoch_num}_{loss_type}_{N}_{noise_type}_{noise}_{abnormal_size}_'
                                                f'{weight}_{sieve_sigma}_{sieve_ratio}.pdparams'))
-        # # 调用 bfgs 方法优化 loss，注意返回的第三个参数表示权重
-        # w_update = paddle.incubate.optimizer.functional.minimize_lbfgs(loss_batch, w, max_iters=bfgs_iter, maxfun=)[2]
-        # # 使用 paddle.assign，以 inplace 方式更新参数
-        # paddle.assign(w_update, w)
-        Optimizer._learning_rate = 1e-20
+        # LBFGS优化
+        Optimizer = LBFGS(parameters=Net_model.parameters())
+        for it in range(bfgs_iter):
+            Net_model.train_bfgs(XY_c, OUTLET, WALL, DATA, Loss_PDE, weight, switch, Optimizer, log_loss)
+            if (it + 1) % print_freq == 0:
+                print('epoch: {:6d}, data_loss: {:.3e}, pde_loss: {:.3e}, cost: {:.2f}'.
+                      format(it, log_loss[-1][0], log_loss[-1][-1], time.time() - sta_time))
+                error_u = Net_model.predict_error()
+                print(error_u)
+                paddle.save({'epoch': adam_iter, 'log_loss': log_loss,
+                             'model': Net_model.state_dict(), "optimizer": Optimizer.state_dict()},
+                            os.path.join(path,
+                                         f'{epoch_num}_{loss_type}_{N}_{noise_type}_{noise}_{abnormal_size}_{weight}.pdparams'))
+        Optimizer = paddle.optimizer.Adam(learning_rate=1e-20, parameters=Net_model.parameters())
+        # Adam终优化
         for it in range(100):
             Net_model.train(XY_c, OUTLET, WALL, DATA, Loss_PDE, weight, switch, Optimizer, log_loss)
     paddle.save({'epoch': adam_iter, 'log_loss': log_loss,
                  'model': Net_model.state_dict(), "optimizer": Optimizer.state_dict()},
-        os.path.join(path, f'{epoch_num}_{loss_type}_{N}_{noise_type}_{noise}_{abnormal_size}_{weight}_{sieve_sigma}'
-                           f'_{sieve_ratio}.pdparams'))
+                os.path.join(path, f'{loss_type}_{N}_{noise_type}_{noise}_{abnormal_size}_{weight}_{sieve_sigma}'
+                                   f'_{sieve_ratio}.pdparams'))
     error = Net_model.predict_error()
     Net_model.plot_result(DATA,
-        path.joinpath(f'{epoch_num}_{loss_type}_{N}_{noise_type}_{noise}_{abnormal_size}_{weight}_{sieve_sigma}'
-                      f'_{sieve_ratio}.png'))
+                          path.joinpath(
+                              f'{epoch_num}_{loss_type}_{N}_{noise_type}_{noise}_{abnormal_size}_{weight}_{sieve_sigma}'
+                              f'_{sieve_ratio}.png'))
     with open(path.joinpath('result.csv'), 'a+') as f:
         f.write(f"{epoch_num},{loss_type},{N},{noise_type},{noise},{abnormal_size},{weight},{error},{sieve_sigma},"
                 f"{sieve_ratio},{len(DATA[:, 0:1])}\n")
 
     print("--- %s seconds ---" % (time.time() - sta_time))
+
 
 def get_last_idx(filename):
     if not os.path.exists(filename):
@@ -374,6 +428,7 @@ def get_last_idx(filename):
     with open(filename, "r") as f1:
         last_idx = int(f1.readlines()[-1].strip().split(',')[0])
         return last_idx
+
 
 if __name__ == "__main__":
     idx = 0
@@ -407,7 +462,7 @@ if __name__ == "__main__":
             for noise in [0.20]:
                 for abnormal_ratio in [0]:
                     for N in [500]:
-                        _data= []
+                        _data = []
                         for loss_type, sieve_sigma, sieve_ratio in zip(
                                 ['l1', 'square', 'square', 'square', 'square', 'square', 'square', 'square', ],
                                 [0, 0, 0, 0, 0, 2, 2.5, 3, ],

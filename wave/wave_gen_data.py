@@ -51,26 +51,29 @@ def get_noise_data(N, noise_type="none", sigma=0.5, size=-1, seed=0):
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
-    X_star, u_star = get_truth()
+    X_star_tru, u_star_tru = get_truth()
     shape = (401, 201)
-    x = X_star[:, 0].reshape(*shape)
-    t = X_star[:, 1].reshape(*shape)
-    print(X_star.shape)
+    x_tru = X_star_tru[:, 0].reshape(*shape)
+    t_tru = X_star_tru[:, 1].reshape(*shape)
+    print(X_star_tru.shape)
 
     fig, ax = plt.subplots(3, 1, figsize=(10, 10), dpi=200)
     fig.set_tight_layout(True)
     np.random.seed(0)
-    X_star, u_star = get_noise_data(50, noise_type='outlinear', sigma=0.0, size=1)
-    # X_star, u_star = get_noise_data(80601, noise_type='outlinear', sigma=0.0, size=1)
+    X_star, u_star = get_noise_data(250, noise_type='normal')
     x, t = X_star[:, 0], X_star[:, 1]
-    ax[0].scatter(x, u_star)
+    ax[0].scatter(t, u_star, label='Gaussian', marker='o')
 
-    X_star, u_star = get_noise_data(50, noise_type='outlinear', sigma=0.1, size=1)
-    # X_star, u_star = get_noise_data(80601, noise_type='outlinear', sigma=0.1, size=1)
+    X_star, u_star = get_noise_data(250, noise_type='outlinear', sigma=0.1, size=1)
     x, t = X_star[:, 0], X_star[:, 1]
-    ax[0].scatter(x, u_star)
+    ax[2].scatter(t, u_star, label='mixed')
 
-    ax[1].pcolormesh(t.ravel().reshape(*shape), x.ravel().reshape(*shape), u_star.ravel().reshape(*shape), vmin=-1,
+    ax[1].pcolormesh(t_tru.ravel().reshape(*shape), x_tru.ravel().reshape(*shape), u_star_tru.ravel().reshape(*shape),
+                     vmin=-1,
                      vmax=1.)
-    plt.savefig('noise_data.png')
+    arr = np.random.randint(0, 80601, size=250)
+    ax[1].scatter(t_tru.ravel()[arr], x_tru.ravel()[arr], s=10, marker='*', c='black')
+    ax[0].scatter(t_tru.ravel()[arr], u_star_tru.ravel()[arr], label='exact', marker='*')
+    plt.legend()
+    plt.savefig('noise_data_c=1.54.png')
     plt.show()

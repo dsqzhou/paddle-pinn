@@ -155,30 +155,13 @@ def run_experiment(epoch_num, noise_type, noise, loss_type, N, weight, _data=[],
     print_freq = 20
     sta_time = time.time()
 
-    for it in range(1):
+    for it in range(adam_iter):
 
         learning_rate = Optimizer.get_lr()
         train(X_u_train, X_f_train, u_train, Net_model, Loss_data, Loss_PDE, weight, Optimizer, log_loss)
         if (it + 1) % print_freq == 0:
             print('epoch: {:6d}, lr: {:.3e}, data_loss: {:.3e}, pde_loss: {:.3e}, cost: {:.2f}'.
               format(it, learning_rate, log_loss[-1][0], log_loss[-1][-1], time.time() - sta_time))
-
-
-    params_dict = Net_model.state_dict()
-    params_flatten = paddle.to_tensor([])
-    log_shape = []
-    for name in params_dict.keys():
-        param_flatten = params_dict[name].flatten()
-        params_flatten = paddle.concat([params_flatten, param_flatten], axis=0)
-        log_shape.append([len(params_flatten), params_dict[name].shape])
-
-    for it in range(bfgs_iter):
-    # # 调用 bfgs 方法优化 loss，注意返回的第三个参数表示权重
-        params_update = paddle.incubate.optimizer.functional.minimize_lbfgs(bfgs_f(params_flatten, X_u_train, X_f_train, u_train,
-                    Net_model, log_shape, Loss_data, Loss_PDE, weight), params_flatten)[2]
-    # # 使用 paddle.assign，以 inplace 方式更新参数
-        paddle.assign(params_update, params_flatten)
-
 
     Optimizer._learning_rate = 1e-20
     for it in range(100):
