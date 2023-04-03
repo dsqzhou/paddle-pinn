@@ -61,9 +61,16 @@ $
 
 |      |  复现  | 论文 |
 |:--------------:| :------------: | :------: |
+<<<<<<< HEAD
 |Figure3 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig3.png) |
 |Figure4|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/Figure4.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig4.png)|
 |Figure5|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/Figure5.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig5.png)|
+=======
+|Figure3 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)|![lun](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig3.png) |
+
+|Figure4|![](assets/16794920732708.jpg)|![](assets/16794919112984.jpg)|
+|Figure5|![](assets/16795028935226.jpg)|![](assets/16794994286912.jpg)|
+>>>>>>> 8345381e72644ef4e1d5e3098674a6d73196f34b
 * 下表详细展示了采用LAD-PINN和OLS-PINN对1D Possion问题的预测效果，以及不同数据类型、不同损失程度、不同测点数量和不同PDE损失权重对于两种PINN的影响。其中，左侧为本次复现结果，而右侧为论文结果。
 
 |      |                                     复现                                     | 论文 |
@@ -265,5 +272,8 @@ error_p = np.linalg.norm(p_pred_slice - p_slice - p_mean_slice, 2) / np.linalg.n
 - 下图对比了t=5/10/15s时不同PINN方法的压力误差情况，由于文献中未告知图片采用哪种异常数据计算的，在此放了clean和mixed-outlier两种情况。在无噪声下，OLS表现比LAD好，MAD表现最好，但与OLS的结果相差不大。在mixed-outlier中，OLS无法获得较准确的压力场，而LAD/MAD的误差都比较小，MAD的结果相对最好，与原文结果基本一致。
 |          |  复现  | 论文 |
 |:--------:| :------------: | :------: |
-| Figure17 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig17_none.png)
-- ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig17_mixed.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig17.png) |
+<<<<<<< HEAD
+| Figure17 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig17_none.png)![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig17_mixed.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig17.png) |
+=======
+| Figure17 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)|![](assets/16794900502148.jpg) |
+
