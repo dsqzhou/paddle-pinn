@@ -61,7 +61,7 @@ $
 
 |      |  复现  | 论文 |
 |:--------------:| :------------: | :------: |
-|Figure3 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)|![lun](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig3.png) |
+|Figure3 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig3.png) |
 
 |Figure4|![](assets/16794920732708.jpg)|![](assets/16794919112984.jpg)|
 |Figure5|![](assets/16795028935226.jpg)|![](assets/16794994286912.jpg)|
