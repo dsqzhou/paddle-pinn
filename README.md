@@ -267,8 +267,8 @@ p_mean_slice = np.mean(p_pred_slice - p_slice)
 error_p = np.linalg.norm(p_pred_slice - p_slice - p_mean_slice, 2) / np.linalg.norm(p_slice, 2)
 ```
 - 下图对比了t=5/10/15s时不同PINN方法的压力误差情况，由于文献中未告知图片采用哪种异常数据计算的，在此放了clean和mixed-outlier两种情况。在无噪声下，OLS表现比LAD好，MAD表现最好，但与OLS的结果相差不大。在mixed-outlier中，OLS无法获得较准确的压力场，而LAD/MAD的误差都比较小，MAD的结果相对最好，与原文结果基本一致。
-|          |  复现  | 论文 |
-|:--------:| :------------: | :------: |
-| Figure17 none| ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig17_none.png)| ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig17.png) |
-| Figure17 mixed | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig17_mixed.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig17.png) |
+|      |                                     复现                                     | 论文 |
+|:------------:|:--------------------------------------------------------------------------:| :------: |
+|Figure8 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig8.png) |![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig8.png) |
+|Figure9| ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig9.png) |![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig9.png)|
 
