@@ -292,4 +292,4 @@ error_p = np.linalg.norm(p_pred_slice - p_slice - p_mean_slice, 2) / np.linalg.n
 
 |      | 复现 | 论文 |
 | :------------: | :—--: | :—--: |
-|Figure17 | <div style="width: 20pt">![none](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig17_mixed.png) ![mixed](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig17_mixed.png)| <div style="width: 20pt">![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig17.png) |
+|Figure17 | ![none](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig17_mixed.png =300x) ![mixed](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig17_mixed.png =300x)| ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig17.png =300x) |
