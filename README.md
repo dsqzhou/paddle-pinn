@@ -77,10 +77,12 @@ export LD_LIBRARY_PATH=/opt/conda/envs/python35-paddle120-env/lib:${LD_LIBRARY_P
 经典二维稳态圆柱绕流问题
 * NS方程（层流）：
 
-   $$\begin{aligned}
-   & u u_x+v u_y=-p_x+\mu (u_{x x}+u_{y y}) \\
-   & u v_x+v v_y=-p_y+\mu (v_{x x}+v_{y y})
-   \end{aligned}$$
+$$
+\begin{aligned}
+& u u_x+v u_y=-p_x+u_{x x}+u_{y y} \\
+& u v_x+v v_y=-p_y+v_{x x}+v_{y y}
+\end{aligned}
+$$
    
 * 连续性方程：
 
@@ -91,9 +93,18 @@ export LD_LIBRARY_PATH=/opt/conda/envs/python35-paddle120-env/lib:${LD_LIBRARY_P
 * 边界条件：壁面无滑移条件，速度为0；出口压力为0；入口速度设置为： $u(0, y)=4 \frac{U_M}{H^2}(H-y) y$ ，其中 $U_M=1 \mathrm{m} / \mathrm{s}$ ， $H=0.41 \mathrm{m}$
 
 * 所给数据集仅包含（x,y,u,v），压力未知，入口速度边界未知。
-* 论文假设存在流函数$\psi(x, y)$，使得 $u=\psi_y, \quad v=-\psi_x$ ，从而自动满足连续性方程。并且引入柯西应力张量 $\sigma$ 来降低方程中导数阶数：
+* 论文假设存在流函数 $\psi(x, y)$ ，使得 $u=\psi_y, \quad v=-\psi_x$ ，从而自动满足连续性方程。并且引入柯西应力张量 $\sigma$ 来降低方程中导数阶数：
 
-$$\begin{aligned} \sigma^{11} & =-p+2 \mu u_x \\ \sigma^{22} & =-p+2 \mu v_y \\ \sigma^{12} & =\mu\left(u_y+v_x\right) \\ p & =-\frac{1}{2}\left(\sigma^{11}+\sigma^{22}\right) \\ \left(u u_x+v u_y\right) & =\left(\sigma_x^{11}+\sigma_y^{12}\right) \\ \left(u v_x+v v_y\right) & =\left(\sigma_x^{12}+\sigma_y^{22}\right)\end{aligned}$$
+$$
+\begin{aligned}
+\sigma^{11} & =-p+2 \mu u_x \\
+\sigma^{22} & =-p+2 \mu v_y \\
+\sigma^{12} & =\mu\left(u_y+v_x\right) \\
+p & =-\frac{1}{2}\left(\sigma^{11}+\sigma^{22}\right) \\
+\left(u u_x+v u_y\right) & =\mu\left(\sigma_x^{11}+\sigma_y^{12}\right) \\
+\left(u v_x+v v_y\right) & =\mu\left(\sigma_x^{12}+\sigma_y^{22}\right)
+\end{aligned}
+$$
 
 * 建立神经网络： $\psi, p, \sigma^{11}, \sigma^{12}, \sigma^{22}=\operatorname{net}(x, y)$ 两输入、五输出
 paddle代码实现如下：
