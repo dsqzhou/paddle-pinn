@@ -76,22 +76,26 @@ export LD_LIBRARY_PATH=/opt/conda/envs/python35-paddle120-env/lib:${LD_LIBRARY_P
 #### 问题描述
 经典二维稳态圆柱绕流问题
 * NS方程（层流）：
+
    $$\begin{aligned}
    & u u_x+v u_y=-p_x+\mu (u_{x x}+u_{y y}) \\
    & u v_x+v v_y=-p_y+\mu (v_{x x}+v_{y y})
    \end{aligned}$$
+   
 * 连续性方程：
+
   $$u_x+ v_y=0$$
+  
 [](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig7.png)
-几何结构如上图所示，红线代表壁面。密度$\rho=1 \mathrm{~kg} / \mathrm{m}^3$，动力粘度$\mu=2 \cdot 10^{-2} \mathrm{~kg} / \mathrm{m}^3$
-边界条件：壁面无滑移条件，速度为0；出口压力为0；入口速度设置为： $u(0, y)=4 \frac{U_M}{H^2}(H-y) y$ ，其中 $$U_M=1 \mathrm{m} / \mathrm{s}$$ ， $$H=0.41 \mathrm{m}$$
+几何结构如上图所示，红线代表壁面。密度 $\rho=1 \mathrm{~kg} / \mathrm{m}^3$ ，动力粘度 $\mu=2 \cdot 10^{-2} \mathrm{~kg} / \mathrm{m}^3$ 
+* 边界条件：壁面无滑移条件，速度为0；出口压力为0；入口速度设置为： $u(0, y)=4 \frac{U_M}{H^2}(H-y) y$ ，其中 $U_M=1 \mathrm{m} / \mathrm{s}$ ， $H=0.41 \mathrm{m}$
 
 * 所给数据集仅包含（x,y,u,v），压力未知，入口速度边界未知。
-* 论文假设存在流函数$\psi(x, y)$，使得$u=\psi_y, \quad v=-\psi_x$，从而自动满足连续性方程。并且引入柯西应力张量$\sigma$来降低方程中导数阶数：
-$
-\begin{aligned} \sigma^{11} & =-p+2 \mu u_x \\ \sigma^{22} & =-p+2 \mu v_y \\ \sigma^{12} & =\mu\left(u_y+v_x\right) \\ p & =-\frac{1}{2}\left(\sigma^{11}+\sigma^{22}\right) \\ \left(u u_x+v u_y\right) & =\left(\sigma_x^{11}+\sigma_y^{12}\right) \\ \left(u v_x+v v_y\right) & =\left(\sigma_x^{12}+\sigma_y^{22}\right)\end{aligned}
-$
-* 建立神经网络：$\psi, p, \sigma^{11}, \sigma^{12}, \sigma^{22}=\operatorname{net}(x, y)$两输入、五输出
+* 论文假设存在流函数$\psi(x, y)$，使得 $u=\psi_y, \quad v=-\psi_x$ ，从而自动满足连续性方程。并且引入柯西应力张量 $\sigma$ 来降低方程中导数阶数：
+
+$$\begin{aligned} \sigma^{11} & =-p+2 \mu u_x \\ \sigma^{22} & =-p+2 \mu v_y \\ \sigma^{12} & =\mu\left(u_y+v_x\right) \\ p & =-\frac{1}{2}\left(\sigma^{11}+\sigma^{22}\right) \\ \left(u u_x+v u_y\right) & =\left(\sigma_x^{11}+\sigma_y^{12}\right) \\ \left(u v_x+v v_y\right) & =\left(\sigma_x^{12}+\sigma_y^{22}\right)\end{aligned}$$
+
+* 建立神经网络： $\psi, p, \sigma^{11}, \sigma^{12}, \sigma^{22}=\operatorname{net}(x, y)$ 两输入、五输出
 paddle代码实现如下：
 ```
 class PINN_laminar_flow(DeepModelSingle):
@@ -148,22 +152,22 @@ class PINN_laminar_flow(DeepModelSingle):
 ### 4.3 波动方程
 #### 问题描述
 一维波动方程（逆向求解参数c）
-$
-u_{t t}=c \cdot u_{x x}, \quad(t, x) \in \Omega=[0,2 \pi] \times[0, \pi]
-$
+
+$$u_{t t}=c \cdot u_{x x}, \quad(t, x) \in \Omega=[0,2 \pi] \times[0, \pi]$$
+
 [](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/wave_u-xt.png)
 [](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/wave_u-t.png)
 解析解：
-$
-u=\sin x \cdot(\sin \sqrt{c} \cdot t+\cos \sqrt{c} \cdot t)
-$
-原文描述：c=1，实际$\sqrt{c}=1.54$
+
+$$u=\sin x \cdot(\sin \sqrt{c} \cdot t+\cos \sqrt{c} \cdot t)$$
+
+原文描述：c=1，实际 $\sqrt{c}=1.54$ 
 
 |  c=1  | $\sqrt{c}=1.54$ |
 | :------------: | :------: |
 |![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/wave_c%3D1.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/wave_c%3D1.54**2.png)|
 
-建立神经网络：$u=\operatorname{net}(x, t)$两输入、一输出
+建立神经网络： $u=\operatorname{net}(x, t)$ 两输入、一输出
 paddle代码实现如下：
 ```
 class PINN_wave(DeepModelSingle):
@@ -198,18 +202,22 @@ class PINN_wave(DeepModelSingle):
 #### 问题描述
 不可压缩流体流动问题
 * NS方程：
-$
+
+$$
 \begin{aligned}
 u_t+\lambda_1\left(u u_x+v u_y\right) & =-p_x+\lambda_2\left(u_{x x}+u_{y y}\right) \\
 v_t+\lambda_1\left(u v_x+v v_y\right) & =-p_y+\lambda_2\left(v_{x x}+v_{y y}\right)
 \end{aligned}
-$
+$$
+
 * 连续性方程：
-$
+
+$$
 u_x+ v_y=0
-$
-* 论文假设存在流函数$\psi(x, y)$，使得$u=\psi_y, \quad v=-\psi_x$，从而自动满足连续性方程。
-* 建立神经网络：$\psi, p=\operatorname{net}(t, x, y, \lambda_1,  \lambda_2)$，与问题4.2相比，该神经网络只有两个方程约束，但同时要求三阶导数。
+$$
+
+* 论文假设存在流函数$\psi(x, y)$，使得 $u=\psi_y, \quad v=-\psi_x$ ，从而自动满足连续性方程。
+* 建立神经网络： $\psi, p=\operatorname{net}(t, x, y, \lambda_1,  \lambda_2)$ ，与问题4.2相比，该神经网络只有两个方程约束，但同时要求三阶导数。
 方程paddle代码实现如下：
 ```
 def equation(self, inn_var):
@@ -233,28 +241,34 @@ def equation(self, inn_var):
 
         return res_u, res_v, p, u, v
 ```
-研究问题：圆柱绕流，假设无量纲自由流速度$u_{\infty}=1$，圆柱体直径D =1，运动粘度ν=0.01，雷诺数Re=100，即：$\lambda_1 = 1，\lambda_2 = 0.01$。系统表现出周期性稳态行为，其特征为圆柱体尾迹中不对称的涡脱模式，称为卡门涡街。
+研究问题：圆柱绕流，假设无量纲自由流速度 $u_{\infty}=1$ ，圆柱体直径D =1，运动粘度ν=0.01，雷诺数Re=100，即： $\lambda_1 = 1，\lambda_2 = 0.01$ 。系统表现出周期性稳态行为，其特征为圆柱体尾迹中不对称的涡脱模式，称为卡门涡街。
 
 ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/NS_field.png)
 ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/Figure16.png)
 
 几何结构如上图所示，时空训练数据采样于圆柱体后面的矩形区。蓝色点表示速度分量u(t, x, y)、v(t, x, y)的训练数据点位置。
-* 所给数据集包含20s内该矩形域下的速度场分布（$x\in [1,8], y\in [-2,2], t\in [0,20]$），压力未知，无边界条件。
+* 所给数据集包含20s内该矩形域下的速度场分布（ $x\in [1,8], y\in [-2,2], t\in [0,20]$ ），压力未知，无边界条件。
 - 损失函数包括两部分：方程损失+速度数据损失
 计算结果
 二阶段方法压力重构
 * 在未给参考压力下，所求压力值都是相对值，因此重构压力场会与参考数据相差一个常数值。这个常数可利用最小化平方范数表示：
-$
+
+$$
 \hat{c}=\arg \min _c\left\|p_{r e f}-\hat{p}+c\right\|_2^2
-$
+$$
+
 * 利用优化问题的一阶条件，可得
-$
+
+$$
 \hat{c}:=\frac{\int_{\Omega}\left(\hat{p}-p_{r e f}\right) d x d y}{\int_{\Omega} d x d y}
-$
+$$
+
 * 随后，本文采用相对平方误差来判断重构压力场的预测精度:
-$
+
+$$
 \operatorname{rel}_p:=\frac{\left\|p_{\text {ref }}-\hat{p}+\hat{c}\right\|_2}{\left\|p_{r e f}\right\|_2}
-$
+$$
+
 * 代码表现为：
 ```
 t_p = 100
