@@ -45,14 +45,14 @@ export LD_LIBRARY_PATH=/opt/conda/envs/python35-paddle120-env/lib:${LD_LIBRARY_P
 ```
 - 同时，LBFGS优化器也需要在该版本下运行
 
-## 复现结果
+## 计算结果
 ### 4.1 泊松方程
 * 原始方程为1-D Poisson方程：
 $
 u_{xx}=-16sin(4x) \in[-\pi, \pi]
 $
 * 方程解析解为：
-$ 
+$
 u(x)=sin(4x)+1
 $
 观测数据仅分布在$[-\pi, 0]$，需确定$[-\pi, \pi]$内的解
