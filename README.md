@@ -53,13 +53,11 @@ export LD_LIBRARY_PATH=/opt/conda/envs/python35-paddle120-env/lib:${LD_LIBRARY_P
 
 * 方程解析解为：
 
-  $
-  u(x)=sin(4x)+1
-  $
+  $$u(x)=sin(4x)+1$$
 
-观测数据仅分布在$[-\pi, 0]$，需确定$[-\pi, \pi]$内的解
-* Figure3-4证明了在无物理约束下，神经网络没有物理定律的泛化能力，无法依赖$[-\pi, 0]$的数据学习到$[0, \pi]$内的正确解。并且，针对噪声数据，神经网络在充足训练下会过度拟合数据。而加入PDE损失后，两种PINN求解结果都与实际基本吻合。
-* Figure5显示了LAD与OLS再应对异常高值时的预测能力，在仅包含一个异常高值（x=0,y=10）的情况，OLS-PINN在$x \in[0, \pi]$的预测能力相比较差，曲线略微倾斜于异常点，说明L2范数会放大个别大误差的影响，导致整体预测的偏颇。与论文相比，复现结果中OLS的预测效果明显更好。
+观测数据仅分布在 $[-\pi, 0]$ ，需确定 $[-\pi, \pi]$ 内的解
+* Figure3-4证明了在无物理约束下，神经网络没有物理定律的泛化能力，无法依赖 $[-\pi, 0]$ 的数据学习到 $[0, \pi]$ 内的正确解。并且，针对噪声数据，神经网络在充足训练下会过度拟合数据。而加入PDE损失后，两种PINN求解结果都与实际基本吻合。
+* Figure5显示了LAD与OLS再应对异常高值时的预测能力，在仅包含一个异常高值（x=0,y=10）的情况，OLS-PINN在 $x \in[0, \pi]$ 的预测能力相比较差，曲线略微倾斜于异常点，说明L2范数会放大个别大误差的影响，导致整体预测的偏颇。与论文相比，复现结果中OLS的预测效果明显更好。
 
 |      |  复现  | 论文 |
 |:--------------:| :------------: | :------: |
@@ -78,19 +76,16 @@ export LD_LIBRARY_PATH=/opt/conda/envs/python35-paddle120-env/lib:${LD_LIBRARY_P
 #### 问题描述
 经典二维稳态圆柱绕流问题
 * NS方程（层流）：
-$
-\begin{aligned}
-& u u_x+v u_y=-p_x+\mu (u_{x x}+u_{y y}) \\
-& u v_x+v v_y=-p_y+\mu (v_{x x}+v_{y y})
-\end{aligned}
-$
+   $$\begin{aligned}
+   & u u_x+v u_y=-p_x+\mu (u_{x x}+u_{y y}) \\
+   & u v_x+v v_y=-p_y+\mu (v_{x x}+v_{y y})
+   \end{aligned}$$
 * 连续性方程：
-$
-u_x+ v_y=0
-$
+  $$u_x+ v_y=0$$
 [](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig7.png)
 几何结构如上图所示，红线代表壁面。密度$\rho=1 \mathrm{~kg} / \mathrm{m}^3$，动力粘度$\mu=2 \cdot 10^{-2} \mathrm{~kg} / \mathrm{m}^3$
-边界条件：壁面无滑移条件，速度为0；出口压力为0；入口速度设置为：$u(0, y)=4 \frac{U_M}{H^2}(H-y) y$，其中$$U_M=1 \mathrm{m} / \mathrm{s}$$，$$H=0.41 \mathrm{m}$$
+边界条件：壁面无滑移条件，速度为0；出口压力为0；入口速度设置为： $u(0, y)=4 \frac{U_M}{H^2}(H-y) y$ ，其中 $$U_M=1 \mathrm{m} / \mathrm{s}$$ ， $$H=0.41 \mathrm{m}$$
+
 * 所给数据集仅包含（x,y,u,v），压力未知，入口速度边界未知。
 * 论文假设存在流函数$\psi(x, y)$，使得$u=\psi_y, \quad v=-\psi_x$，从而自动满足连续性方程。并且引入柯西应力张量$\sigma$来降低方程中导数阶数：
 $
