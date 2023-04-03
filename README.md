@@ -61,16 +61,16 @@ $
 
 |      |  复现  | 论文 |
 |:--------------:| :------------: | :------: |
-|Figure3 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)|![](assets/16794900502148.jpg) |
-|Figure4|![](assets/16794920732708.jpg)|![](assets/16794919112984.jpg)|
-|Figure5|![](assets/16795028935226.jpg)|![](assets/16794994286912.jpg)|
+|Figure3 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig3.png) |
+|Figure4|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/Figure4.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig4.png)|
+|Figure5|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/Figure5.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig5.png)|
 * 下表详细展示了采用LAD-PINN和OLS-PINN对1D Possion问题的预测效果，以及不同数据类型、不同损失程度、不同测点数量和不同PDE损失权重对于两种PINN的影响。其中，左侧为本次复现结果，而右侧为论文结果。
 
-|      |  复现  | 论文 |
-|:------------:| :------------: | :------: |
-|Table2 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)|![](assets/16794900502148.jpg) |
-|Table3|![](assets/16794920732708.jpg)|![](assets/16794919112984.jpg)|
-|Figure6|![](assets/16795028935226.jpg)|![](assets/16794994286912.jpg)|
+|      |                                     复现                                     | 论文 |
+|:------------:|:--------------------------------------------------------------------------:| :------: |
+|Table2 |   ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/tab2.png)   |![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/tab2.png) |
+|Table3| ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/tab3.png) |![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/tab3.png)|
+|Figure6| ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig6.png) |![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig6.png)|
 ### 4.2 二维稳态NS方程
 #### 问题描述
 经典二维稳态圆柱绕流问题
@@ -85,7 +85,7 @@ $
 $
 u_x+ v_y=0
 $
-[](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)
+[](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig7.png)
 几何结构如上图所示，红线代表壁面。密度$\rho=1 \mathrm{~kg} / \mathrm{m}^3$，动力粘度$\mu=2 \cdot 10^{-2} \mathrm{~kg} / \mathrm{m}^3$
 边界条件：壁面无滑移条件，速度为0；出口压力为0；入口速度设置为：$u(0, y)=4 \frac{U_M}{H^2}(H-y) y$，其中$$U_M=1 \mathrm{m} / \mathrm{s}$$，$$H=0.41 \mathrm{m}$$
 * 所给数据集仅包含（x,y,u,v），压力未知，入口速度边界未知。
@@ -143,17 +143,18 @@ class PINN_laminar_flow(DeepModelSingle):
 - 损失函数包含三部分：速度数据对比损失，边界损失和方程残差损失
 #### 计算结果
 
-|      |  复现  | 论文 |
-|:------------:| :------------: | :------: |
-|Figure8 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)|![](assets/16794900502148.jpg) |
-|Figure9|![](assets/16794920732708.jpg)|![](assets/16794919112984.jpg)|
+|      |                                     复现                                     | 论文 |
+|:------------:|:--------------------------------------------------------------------------:| :------: |
+|Figure8 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig8.png) |![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig8.png) |
+|Figure9| ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig9.png) |![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig9.png)|
 ### 4.3 波动方程
 #### 问题描述
 一维波动方程（逆向求解参数c）
 $
 u_{t t}=c \cdot u_{x x}, \quad(t, x) \in \Omega=[0,2 \pi] \times[0, \pi]
 $
-[](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)
+[](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/wave_u-xt.png)
+[](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/wave_u-t.png)
 解析解：
 $
 u=\sin x \cdot(\sin \sqrt{c} \cdot t+\cos \sqrt{c} \cdot t)
@@ -162,8 +163,7 @@ $
 
 |  c=1  | $\sqrt{c}=1.54$ |
 | :------------: | :------: |
-||![](assets/16794900502148.jpg) |
-|![](assets/16794920732708.jpg)|![](assets/16794919112984.jpg)|
+|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/wave_c%3D1.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/wave_c%3D1.54**2.png)|
 建立神经网络：$u=\operatorname{net}(x, t)$两输入、一输出
 paddle代码实现如下：
 ```
@@ -193,7 +193,7 @@ class PINN_wave(DeepModelSingle):
 
 |          |  复现  | 论文 |
 |:--------:| :------------: | :------: |
-| Figure15 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)|![](assets/16794900502148.jpg) |
+| Figure15 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/Figure15.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig15.png) |
 
 ### 4.4 含有未知参数的二维非稳态NS方程
 #### 问题描述
@@ -235,8 +235,8 @@ def equation(self, inn_var):
         return res_u, res_v, p, u, v
 ```
 研究问题：圆柱绕流，假设无量纲自由流速度$u_{\infty}=1$，圆柱体直径D =1，运动粘度ν=0.01，雷诺数Re=100，即：$\lambda_1 = 1，\lambda_2 = 0.01$。系统表现出周期性稳态行为，其特征为圆柱体尾迹中不对称的涡脱模式，称为卡门涡街。
-![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)
-![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)
+![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/NS_field.png)
+![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/Figure16.png)
 几何结构如上图所示，时空训练数据采样于圆柱体后面的矩形区。蓝色点表示速度分量u(t, x, y)、v(t, x, y)的训练数据点位置。
 * 所给数据集包含20s内该矩形域下的速度场分布（$x\in [1,8], y\in [-2,2], t\in [0,20]$），压力未知，无边界条件。
 - 损失函数包括两部分：方程损失+速度数据损失
@@ -265,4 +265,5 @@ error_p = np.linalg.norm(p_pred_slice - p_slice - p_mean_slice, 2) / np.linalg.n
 - 下图对比了t=5/10/15s时不同PINN方法的压力误差情况，由于文献中未告知图片采用哪种异常数据计算的，在此放了clean和mixed-outlier两种情况。在无噪声下，OLS表现比LAD好，MAD表现最好，但与OLS的结果相差不大。在mixed-outlier中，OLS无法获得较准确的压力场，而LAD/MAD的误差都比较小，MAD的结果相对最好，与原文结果基本一致。
 |          |  复现  | 论文 |
 |:--------:| :------------: | :------: |
-| Figure17 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)|![](assets/16794900502148.jpg) |
+| Figure17 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig17_none.png)
+- ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig17_mixed.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig17.png) |
