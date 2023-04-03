@@ -61,7 +61,7 @@ $
 
 |      |  复现  | 论文 |
 |:--------------:| :------------: | :------: |
-|Figure3 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig3.png) |
+|Figure3 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/Figure3.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig3.png) |
 |Figure4|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/Figure4.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig4.png)|
 |Figure5|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/Figure5.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig5.png)|
 
@@ -165,6 +165,7 @@ $
 |  c=1  | $\sqrt{c}=1.54$ |
 | :------------: | :------: |
 |![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/wave_c%3D1.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/wave_c%3D1.54**2.png)|
+
 建立神经网络：$u=\operatorname{net}(x, t)$两输入、一输出
 paddle代码实现如下：
 ```
@@ -236,8 +237,10 @@ def equation(self, inn_var):
         return res_u, res_v, p, u, v
 ```
 研究问题：圆柱绕流，假设无量纲自由流速度$u_{\infty}=1$，圆柱体直径D =1，运动粘度ν=0.01，雷诺数Re=100，即：$\lambda_1 = 1，\lambda_2 = 0.01$。系统表现出周期性稳态行为，其特征为圆柱体尾迹中不对称的涡脱模式，称为卡门涡街。
+
 ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/NS_field.png)
 ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/Figure16.png)
+
 几何结构如上图所示，时空训练数据采样于圆柱体后面的矩形区。蓝色点表示速度分量u(t, x, y)、v(t, x, y)的训练数据点位置。
 * 所给数据集包含20s内该矩形域下的速度场分布（$x\in [1,8], y\in [-2,2], t\in [0,20]$），压力未知，无边界条件。
 - 损失函数包括两部分：方程损失+速度数据损失
@@ -266,8 +269,5 @@ error_p = np.linalg.norm(p_pred_slice - p_slice - p_mean_slice, 2) / np.linalg.n
 - 下图对比了t=5/10/15s时不同PINN方法的压力误差情况，由于文献中未告知图片采用哪种异常数据计算的，在此放了clean和mixed-outlier两种情况。在无噪声下，OLS表现比LAD好，MAD表现最好，但与OLS的结果相差不大。在mixed-outlier中，OLS无法获得较准确的压力场，而LAD/MAD的误差都比较小，MAD的结果相对最好，与原文结果基本一致。
 |          |  复现  | 论文 |
 |:--------:| :------------: | :------: |
-<<<<<<< HEAD
 | Figure17 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig17_none.png)![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/fig17_mixed.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig17.png) |
-=======
-| Figure17 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)|![](assets/16794900502148.jpg) |
 
