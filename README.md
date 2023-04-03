@@ -49,9 +49,7 @@ export LD_LIBRARY_PATH=/opt/conda/envs/python35-paddle120-env/lib:${LD_LIBRARY_P
 ### 4.1 泊松方程
 * 原始方程为1-D Poisson方程：
 
-$
-u_{xx}=-16sin(4x) \in[-\pi, \pi]
-$
+  $$u_{xx}=-16sin(4x) \in[-\pi, \pi]$$
 
 * 方程解析解为：
 
