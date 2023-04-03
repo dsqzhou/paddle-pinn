@@ -61,7 +61,8 @@ $
 
 |      |  复现  | 论文 |
 |:--------------:| :------------: | :------: |
-|Figure3 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)|![](assets/16794900502148.jpg) |
+|Figure3 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/Figure3.png)|![lun](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig3.png) |
+
 |Figure4|![](assets/16794920732708.jpg)|![](assets/16794919112984.jpg)|
 |Figure5|![](assets/16795028935226.jpg)|![](assets/16794994286912.jpg)|
 * 下表详细展示了采用LAD-PINN和OLS-PINN对1D Possion问题的预测效果，以及不同数据类型、不同损失程度、不同测点数量和不同PDE损失权重对于两种PINN的影响。其中，左侧为本次复现结果，而右侧为论文结果。
