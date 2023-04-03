@@ -53,9 +53,9 @@ export LD_LIBRARY_PATH=/opt/conda/envs/python35-paddle120-env/lib:${LD_LIBRARY_P
 
 * 方程解析解为：
 
- $
- u(x)=sin(4x)+1
- $
+  $
+  u(x)=sin(4x)+1
+  $
 
 观测数据仅分布在$[-\pi, 0]$，需确定$[-\pi, \pi]$内的解
 * Figure3-4证明了在无物理约束下，神经网络没有物理定律的泛化能力，无法依赖$[-\pi, 0]$的数据学习到$[0, \pi]$内的正确解。并且，针对噪声数据，神经网络在充足训练下会过度拟合数据。而加入PDE损失后，两种PINN求解结果都与实际基本吻合。
