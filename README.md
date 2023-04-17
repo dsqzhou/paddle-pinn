@@ -205,9 +205,13 @@ class PINN_wave(DeepModelSingle):
 ```
 #### 计算结果
 
-|          |  复现  | 论文 |
-|:--------:| :------------: | :------: |
-| Figure15 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/Figure15.png)|![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig15.png) |
+|          |                                       复现                                       |                                       论文                                        |
+|:--------:|:------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------:|
+|  Table7  |   ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/tab7.png)   | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/tab7.png)  |
+|  Table8  |   ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/tab8.png)   | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/tab8.png)  |
+|  Table9  |   ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/tab9.png)   | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/tab9.png)  |
+| Table10  |  ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/tab10.png)   | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/tab10.png) |
+| Figure15 | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/Figure15.png) | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/fig15.png) |
 
 ### 4.4 含有未知参数的二维非稳态NS方程
 #### 问题描述
@@ -260,7 +264,15 @@ def equation(self, inn_var):
 几何结构如上图所示，时空训练数据采样于圆柱体后面的矩形区。蓝色点表示速度分量u(t, x, y)、v(t, x, y)的训练数据点位置。
 * 所给数据集包含20s内该矩形域下的速度场分布（ $x\in [1,8], y\in [-2,2], t\in [0,20]$ ），压力未知，无边界条件。
 - 损失函数包括两部分：方程损失+速度数据损失
-计算结果
+#### 计算结果
+LAD-PINN与OLS-PINN对比
+
+|          |                                       复现                                       |                                       论文                                        |
+|:--------:|:------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------:|
+| Table11  |  ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/tab11.png)   | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/tab11.png) |
+| Table12  |  ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/tab12.png)   | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/tab12.png) |
+| Table13  |  ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/tab13.png)   | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/tab13.png) |
+| Table14  |  ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/paddle/tab14.png)   | ![](https://github.com/dsqzhou/rPINN_paddle/blob/main/fig/literature/tab14.png) |
 二阶段方法压力重构
 * 在未给参考压力下，所求压力值都是相对值，因此重构压力场会与参考数据相差一个常数值。这个常数可利用最小化平方范数表示：
 

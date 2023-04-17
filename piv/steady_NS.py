@@ -245,9 +245,6 @@ def run_experiment(epoch_num, noise_type, noise, loss_type, N, weight, _data=[],
     lb = np.array([0, 0])
     ub = np.array([1.1, 0.41])
 
-    # Network configuration
-    uv_layers = [2] + 8 * [40] + [5]
-
     wall_up = [0.0, 0.41] + [1.1, 0.0] * lhs(2, 101)
     wall_lw = [0.0, 0.00] + [1.1, 0.0] * lhs(2, 101)
     OUTLET = [1.1, 0.0] + [0.0, 0.41] * lhs(2, 201)
@@ -291,15 +288,15 @@ def run_experiment(epoch_num, noise_type, noise, loss_type, N, weight, _data=[],
     sta_time = time.time()
 
     # Adam初步优化
-    # for it in range(adam_iter):
-    #
-    #     learning_rate = Optimizer.get_lr()
-    #     Net_model.train(XY_c, OUTLET, WALL, DATA, Loss_data, Loss_PDE, weight, Optimizer, log_loss)
-    #     if (it + 1) % print_freq == 0:
-    #         print('epoch: {:6d}, lr: {:.3e}, data_loss: {:.3e}, pde_loss: {:.3e}, cost: {:.2f}'.
-    #           format(it, learning_rate, log_loss[-1][0], log_loss[-1][-1], time.time() - sta_time))
+    for it in range(adam_iter):
+
+        learning_rate = Optimizer.get_lr()
+        Net_model.train(XY_c, OUTLET, WALL, DATA, Loss_data, Loss_PDE, weight, Optimizer, log_loss)
+        if (it + 1) % print_freq == 0:
+            print('epoch: {:6d}, lr: {:.3e}, data_loss: {:.3e}, pde_loss: {:.3e}, cost: {:.2f}'.
+              format(it, learning_rate, log_loss[-1][0], log_loss[-1][-1], time.time() - sta_time))
     print(str(path) + '/' + f"{loss_type}_{N}_{noise_type}_{noise}_{abnormal_size}_{weight}.pdparams")
-    Net_model.loadmodel(str(path) + '/' + f"{loss_type}_{N}_{noise_type}_{noise}_{abnormal_size}_{weight}.pdparams")
+    # Net_model.loadmodel(str(path) + '/' + f"{loss_type}_{N}_{noise_type}_{noise}_{abnormal_size}_{weight}.pdparams")
     # LBFGS优化
     Optimizer = LBFGS(parameters=Net_model.parameters())
     for it in range(bfgs_iter):
