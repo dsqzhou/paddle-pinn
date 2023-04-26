@@ -12,7 +12,7 @@ from pyDOE import lhs
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from basic_model import DeepModelSingle
 from parser_pinn import get_parser
-from wave_gen_data import get_noise_data, get_truth
+from gen_wave_data import get_noise_data, get_truth
 from logger import logger
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # CPU:-1; GPU0: 1; GPU1: 0;

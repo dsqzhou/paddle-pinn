@@ -9,7 +9,7 @@ import paddle.nn as nn
 from pyDOE import lhs
 from basic_model import DeepModelSingle
 from parser_pinn import get_parser
-from poisson_gen_data import get_noise_data, get_truth
+from gen_poisson_data import get_noise_data, get_truth
 from logger import logger
 
 parser_PINN = get_parser()
@@ -182,3 +182,14 @@ def get_last_idx(filename):
     with open(filename, "r") as f1:
         last_idx = int(f1.readlines()[-1].strip().split(',')[0])
         return last_idx
+
+# if __name__ == "__main__":
+#     N = 1000
+#     noise = 0
+#     abnormal_ratio = 0.2
+#     abnormal_size = int(N * abnormal_ratio)
+#     noise_type = 'outlinear'
+#     _data = []
+#     weight = 1.0
+#     run_experiment(0, N=N, noise=noise, noise_type=noise_type, weight=weight,
+#                    loss_type='l1', _data=_data, abnormal_size=abnormal_size)

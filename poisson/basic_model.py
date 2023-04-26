@@ -1,12 +1,3 @@
-# !/usr/bin/env python3
-# -*- coding: UTF-8 -*-
-# Copyright (c) 2022 Baidu.com, Inc. All Rights Reserved
-"""
-FileName: basic_model.py
-Authors:  liu tianyuan (liutianyuan02@baidu.com)
-Date:     2022/10/18 12:10
-"""
-
 import paddle
 import paddle.nn as nn
 import os

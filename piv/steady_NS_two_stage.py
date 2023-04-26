@@ -14,7 +14,7 @@ from pyDOE import lhs
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from basic_model import DeepModelSingle
 from parser_pinn import get_parser
-from gen_data_piv import get_noise_data, get_truth, DelCylPT
+from gen_piv_data import get_noise_data, get_truth, DelCylPT
 import math
 from scipy.special import erfinv
 from logger import logger

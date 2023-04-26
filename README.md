@@ -26,6 +26,7 @@
     - wave/* 论文Section 4.3. 一维波动方程
     - ns/* 论文Section 4.4. 非稳态二维圆柱绕流
       - unsteady_NS.py为一阶段运行脚本
+      - unsteady_NS_std.py中训练PINN两次，数据损失函数分别为L1和L2
       - unsteady_NS_two_stage.py为二阶段运行脚本
       - run_size.sh和unsteady_NS_noise.py分别执行两类对比循环
     - basic_model.py 中为实现的全连接神经网络结构
@@ -36,6 +37,19 @@
 ### 数据库
 - [steady NS](https://github.com/dsqzhou/paddle-pinn/blob/main/piv/FluentSol.mat)
 - [unsteady NS](https://github.com/dsqzhou/paddle-pinn/blob/main/ns/cylinder_nektar_wake.mat)
+
+### 快速开始
+  * poisson文件夹中，poisson_eq.py包含pinn的搭建和训练，及得到相关变量损失和曲线图，存在demo可运行；分别运行*_noise.py/
+*_size.py/*_weight.py可获得不同噪声程度、不同尺寸、不同损失权重下对应的不同噪声数据的模拟结果；运行*_one-outlier.py获得一个异常数据下
+的预测结果
+  * piv文件夹中，steady_NS.py包含pinn的搭建和训练，及得到相关变量损失和曲线图，存在demo可运行；分别运行*_noise.py/
+*_size.py可获得不同噪声程度、不同尺寸下对应的不同噪声数据的模拟结果；运行*_two_stage.py获得两阶段PINN方法的预测结果。
+的预测结果
+  * wave文件夹中，wave_eq.py包含pinn的搭建和训练，及得到相关变量损失和曲线图，存在demo可运行；分别运行*_noise.py/
+*_size.py/*_weight.py可获得不同噪声程度、不同尺寸、不同损失权重下对应的不同噪声数据的模拟结果
+  * ns文件夹中，unsteady_NS.py包含pinn的搭建和训练，及得到相关变量损失和曲线图，存在demo可运行；分别运行unsteady_NS_noise.py/
+*run_size.py可获得不同噪声程度、不同尺寸下对应的不同噪声数据的模拟结果；运行unsteady_NS_two_stage.py获得两阶段PINN方法的预测结果。
+的预测结果
 
 ## 3.环境依赖
 ### 特别提示，Section4.4中用到了三阶微分，高阶自动微分需要在develop版本下静态图模式运行，安装以下版本
